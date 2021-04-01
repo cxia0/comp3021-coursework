@@ -1,0 +1,90 @@
+---
+title: "Chapter 5"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(gapminder)
+library(here)
+library(socviz)
+library(tidyverse)
+theme_set(theme_bw())
+```
+
+
+Objects passed along the pipeline and the functions acting on them carry some assumptions about their context.
+  - Don’t have to keep specifying the name of the underlying data frame object you are working from. Everything is implicitly carried forward from gss_sm.
+  - Within the pipeline, the transient or implicit objects created from your summaries and other transformations are carried through, too.
+```{r echo=FALSE}
+rel_by_region <- gss_sm %>%
+  group_by(bigregion, religion) %>%
+  summarize(count = n()) %>%
+  mutate(freq = count / sum(count), pct = round(freq * 100, 0)) %>%
+  drop_na(religion)
+
+p <- ggplot(rel_by_region, aes(x = bigregion, y = pct, fill = religion))
+p + geom_col(position = "dodge2") +
+  labs(x = NULL, y = 'Percent', fill = "Religion") +
+  guides(fill = FALSE) +
+  coord_flip() +
+  facet_grid( ~ bigregion)
+### THE ABOVE PRODUCES THE WRONG PLOT because 'x' is still 'bigregion' and we don't need that since 'facet_wrap()' will seperate the charts for us by 'bigregion'
+### 
+
+p <- ggplot(rel_by_region, aes(x = religion, y = pct, fill = religion))
+p + geom_col(position = "dodge2") +
+  labs(x = NULL, y = 'Percent', fill = "Religion") +
+  guides(fill = FALSE) +
+  coord_flip() +
+  facet_grid( ~ bigregion)
+```
+
+## ORGAN DATASET
+```{r}
+# organdata %>% select(1:6) %>% slice_sample(n = 10)
+p = ggplot(organdata, aes(reorder(country, donors, na.rm=TRUE), donors, fill=world))
+p + geom_boxplot() +
+  coord_flip()
+  
+```
+
+```{r}
+# Plotting the points like this leads to overplotting in many cases.
+p = ggplot(organdata, aes(reorder(country, donors, na.rm=TRUE), donors, color=world))
+p + geom_point() +
+  coord_flip()
+# May use geom_jitter to scatter the points a little bit to get a better idea of the data
+# The default jitter is too much so decrease it jitter
+p + geom_jitter(position=position_jitter(width = 0.15))+
+  coord_flip()
+```
+
+### Ceveland Dot Plots
+```{r}
+# LOTS OF REDUNDANT CODE. There is a better way to do this
+# by_country <- organdata %>% group_by(consent_law, country) %>%
+#   summarize(
+#     donors_mean = mean(donors, na.rm = TRUE),
+#     donors_sd = sd(donors, na.rm = TRUE),
+#     gdp_mean = mean(gdp, na.rm = TRUE),
+#     health_mean = mean(health, na.rm = TRUE),
+#     roads_mean = mean(roads, na.rm = TRUE),
+#     cerebvas_mean = mean(cerebvas, na.rm = TRUE)
+#   )
+
+by_country = organdata %>% group_by(consent_law, country) %>%
+  summarize_if(is.numeric, funs(mean, sd), na.rm = TRUE) %>%
+  ungroup()
+
+p = ggplot(by_country, aes(x = reorder(country, donors_mean),
+                           y = donors_mean,
+                           color = consent_law))
+p + geom_pointrange(aes(ymin = donors_mean - donors_sd,
+                        ymax = donors_mean + donors_sd)) +
+  coord_flip() +
+  facet_wrap(~ consent_law, ncol = 1, scales = 'free_y')
+# WHEN ONE AXIS IS CATEGORICAL, can allow it to SCALE FREELY when using multiple facets
+```
+

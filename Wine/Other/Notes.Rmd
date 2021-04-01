@@ -1,0 +1,130 @@
+---
+title: "Data Visualization Notes"
+author: "Kieran Healy"
+date: "2019-01-02"
+output: html_document
+---
+  
+## This is an RMarkdown File
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. 
+
+## Set Up Your Project and Load Libraries
+
+To begin we must load some libraries we will be using. If we do not load them, R will not be able to find the functions contained in these libraries. The tidyverse includes ggplot and other tools.
+
+```{r setup, include=FALSE, echo=False}
+
+## By defult, show code for all chunks in the knitted document,
+## as well as the output. To override for a particular chunk
+## use echo = FALSE in its options.
+knitr::opts_chunk$set(echo = TRUE) 
+
+## Set the default size of figures
+knitr::opts_chunk$set(fig.width=7, fig.height=4)  
+
+## Load the libraries we will be using
+library(gapminder)
+library(here)
+library(socviz)
+library(tidyverse)
+theme_set(theme_bw())
+
+
+```
+
+Notice that here, the braces at the start of the code chunk have some additional options set in them. There is the language, `r`, as before. This is required. Then there is the word `setup`, which is a label for your code chunk. Labels are useful to briefly say what the chunk does. Label names must be unique (no two chunks in the same document can have the same label) and cannot contain spaces. Then, after the comma, an option is set: `include=FALSE`. This tells R to run this code but not to include the output in the final document. 
+```{r}
+gapminder
+```
+
+
+## Make a Plot
+```{r ,echo=FALSE, fig.width=8,fig.height=3,fig.align='center'}
+p <- ggplot(data=gapminder,
+            mapping=aes(x=gdpPercap,
+                        y=lifeExp))
+
+p_out = p +
+  geom_point(alpha = 0.9, mapping = aes(color = log(pop))) +
+  geom_smooth(method = "loess", se = TRUE, alpha = 0.3) +
+  scale_x_log10(labels = scales::dollar) +
+  labs(
+    x = "GDP Per Capita",
+    y = "Life Expectancy in Years",
+    title = "Econ. Growth and Life Exp.",
+    subtitle = "Data points are country-years",
+    caption = "Source: Gapminder"
+  )
+
+p_out
+
+# ggsave(here("figures", "lifexp_vs_gdp_gradient.pdf"), plot=p_out)
+# # Params -> scale, height, width, units
+```
+```{r, fig.height=3}
+p = ggplot(data=gapminder, mapping=aes(x=year,
+                                       y=lifeExp))
+
+p + geom_line(color="grey", aes(group=country)) +
+  geom_smooth(color="blue", se=FALSE) +
+  facet_wrap(~continent, ncol = 5) +
+  scale_y_log10()
+```
+## Number of Children by Age and Race
+```{r}
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = age, y = childs))
+p + geom_point(alpha = 0.2) +
+  geom_smooth() +
+  facet_grid(~race+sex)
+```
+```{r}
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = income16, color=sex))
+
+p + geom_freqpoly(stat='count', mapping=aes(group  = bigregion)) +
+  facet_wrap( ~ bigregion)
+```
+```{r}
+sub <- subset(midwest, subset= state %in% c("OH", "WI"))
+p <- ggplot(data = sub, mapping = aes(x = area, color=state))
+
+p + geom_density(alpha=0.3, mapping=aes())
+p + geom_line(stat = "density")
+```
+### Plotting without having geom calculate count
+```{r}
+
+p <- ggplot(data = titanic, mapping = aes(x=fate, y=percent, fill=sex))
+p + geom_bar(position = 'dodge', stat='identity')
+
+```
+
+
+```{r}
+p <- ggplot(data = oecd_sum, mapping=aes(x=year, y=diff, fill=hi_lo))
+p + geom_histogram(stat='identity')
+```
+```{r }
+p <- ggplot(gapminder, aes(log10(gdpPercap), lifeExp))
+plot = p + geom_point() +
+  facet_wrap(~year)
+plot
+```
+```{r}
+countries = c('China', 'Bangladesh', 'Zimbabwe')
+p = ggplot(subset(gapminder, subset=country %in% countries), aes(x=gdpPercap, y=lifeExp, color=year))
+plots = p + geom_point() +
+  facet_wrap(~country)
+
+ggsave(here("figures", "lifexp_vs_gdp_gradient.pdf"), plot=plots)
+
+```
+
+```{r}
+p = ggplot(gss_sm, aes(polviews))
+p + geom_bar(aes(y=..prop.., group=1)) +
+  facet_wrap(~ race)
+```
+
