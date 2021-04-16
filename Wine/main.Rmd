@@ -34,20 +34,21 @@ theme_set(theme_bw())
 ```
 
 ```{r load_data, include=FALSE}
-df_raw_1 <- as_tibble(read_csv("wine_new.csv"))
-df_raw_2 <- as_tibble(read_csv("wine.csv"))
+df_raw_1 <- as_tibble(read_csv("data/wine_new.csv"))
+df_raw_2 <- as_tibble(read_csv("data/wine.csv"))
 
 df_2 <- select(df_raw_2, -c(X1, description, province, region_1, region_2,
                             taster_twitter_handle)) %>% 
-  mutate(vintage = str_match(title, "([1|2][0-9]{3})")[,1]) %>% 
-  mutate(taster_name = gsub("’", "\'", taster_name))
+  mutate(vintage = str_match(title, "([1|2][0-9]{3})")[,1])
 
 df_1 <- select(df_raw_1, -c(description, province, region_1, region_2,
                             taster_twitter_handle, taster_photo)) %>% 
-  mutate(taster_name = gsub("’", "\'", taster_name)) %>% 
   relocate(vintage, .after = last_col())
 
-df <- df_1 %>% add_row(df_2) %>% distinct(title, .keep_all=TRUE)
+df <- df_1 %>% add_row(df_2) %>% distinct(title, .keep_all=TRUE) %>% 
+  mutate(taster_name = gsub("\u00A0", " ", taster_name, fixed = TRUE)) %>% 
+  mutate(taster_name = gsub("’", "\'", taster_name))
+
 df$continent <- countrycode(sourcevar = pull(df, country),
                             origin = "country.name",
                             destination = "continent")
@@ -68,11 +69,6 @@ POINT_SIZE <-  3.5
 # winery = col_character()
 ```
 
-```{r}
-data.frame(taster_name = c('Carrie Dykes', 'Fiona Adams', 'Michael Schachner', 'Alexander Peartree', 'Jeff Jenssen', 'Lauren Buzzeo', 'Sean P. Sullivan', 'Jim Gordon', 'Mike DeSimone', 'Susan Kostrzewa', 'Christina Pickard', 'Roger Voss', 'Joe Czerwinski', 'Kerin O\'Keefe'),
-           sex = c('f', 'f', 'm', 'm', 'm' ,'f', 'm', 'm', 'm', 'f', 'f', 'm', 'm',)
-           )
-```
 
 ```{r}
 p_d <- ggplot(df)
@@ -80,26 +76,11 @@ p_d + geom_density(aes(x = log(price)))
 p_d + geom_bar(aes(x = points))
 ```
 
-
-```{r}
-points_by_taster <- df %>% group_by(taster_name) %>%
-  summarize(points_mean = mean(points, na.rm = TRUE),
-            points_sd = sd(points, na.rm = TRUE),
-            count = n()) %>% 
-  drop_na(taster_name)
-
-p <- ggplot(points_by_taster, aes(x = points_mean, y = reorder(taster_name, points_mean)))
-p + geom_pointrange(aes(xmin = points_mean - points_sd,
-                        xmax = points_mean + points_sd), fatten = 0.75) + 
-  scale_x_continuous(limits = c(82,96), expand = c(0,0.5))
-
-ggsave('tasters.pdf')
-```
 ### QUESTION 1
 ```{r}
 df_q1 <- df %>% group_by(country, continent) %>%
   count(name = 'count') %>%
-  drop_na(country, count) %>% 
+  drop_na(country, count) %>%  
   ungroup() %>% 
   slice_max(count, n = 10)
 
@@ -109,7 +90,7 @@ p + geom_point(size=POINT_SIZE) +
   labs(x = 'Count', y = NULL, color = 'Continent') + 
   theme(legend.position = "top")
 
-ggsave('1.jpg', width = 10, height = 6, scale = 0.75)
+ggsave('1.jpg', width = 9, height = 6, scale = 0.75)
 
 ### END OF QUESTION 1
 ```
@@ -131,12 +112,12 @@ p <- ggplot(df_q2, aes(x = points_mean,
 
 p + geom_pointrange(aes(xmin = points_mean - points_sd,
                         xmax = points_mean + points_sd),
-                    alpha=0.35,
+                    alpha=0.30,
                     size = 1.75,
                     fatten = 0.01,
                     show.legend = FALSE) +
   geom_point(size = POINT_SIZE) +
-  scale_x_continuous(limits = c(82,96), expand = c(0,0.5)) +
+  scale_x_continuous(limits = c(83,95), expand = c(0,0.5), breaks = scales::pretty_breaks(n = 8)) +
   labs(x = 'Points', y = NULL, color = 'Continent') + 
   theme(legend.position = "top")
 
@@ -144,6 +125,38 @@ ggsave('2.jpg', width = 10, height = 6, scale = 0.75)
 
 ### END OF QUESTION 2
 ```
+
+
+```{r}
+df_genders <- as_tibble(read_csv('data/taster_genders.csv'))
+
+df_q4 <- df %>% group_by(taster_name) %>%
+  summarize(points_mean = mean(points, na.rm = TRUE),
+            points_sd = sd(points, na.rm = TRUE),
+            count = n()) %>%  
+  drop_na(taster_name)
+
+df_joined <- left_join(df_q4, df_genders, by='taster_name')
+
+p <- ggplot(df_joined, aes(x = points_mean, y = reorder(taster_name, points_mean), color=gender))
+p + geom_pointrange(aes(xmin = points_mean - points_sd,
+                        xmax = points_mean + points_sd),
+                    alpha=0.35,
+                    size = 1,
+                    fatten = 0.01,
+                    show.legend = FALSE) + 
+  geom_point() + 
+  scale_x_continuous(limits = c(83,95), expand = c(0,0.5), breaks = scales::pretty_breaks(n = 8)) +
+  labs(x = 'Points', y = NULL, color = 'Gender') +  
+  theme(legend.position = "top")
+
+ggsave('3.jpg', scale=0.75)
+```
+
+```{r}
+p <- ggplot(df, aes(x = points, y = taster_name))
+p + geom_violin()
+```   
 
 
 ```{r}
@@ -169,12 +182,12 @@ p + geom_violin(aes(group=points))
 ### QUESTION 3
 ```{r, fig.height=8, fig.width=8}
 q3 <- df %>% select(c(price, points))
-
+  
 p3 <- ggplot(q3, aes(x = price,
                      y = factor(points),
                      fill = ..x..))
 
-p_out_3 <- p3 + geom_density_ridges_gradient(scale = 1.75,
+p3 + geom_density_ridges_gradient(scale = 1.75,
                                  size = 0.25,
                                  rel_min_height = 0.01,
                                  quantile_lines=TRUE, quantile_fun=function(x,...)median(x)) +
@@ -183,7 +196,7 @@ p_out_3 <- p3 + geom_density_ridges_gradient(scale = 1.75,
   guides(fill=FALSE) + 
   labs(x = 'Price', y = 'Points')
 
-ggsave('3.jpg', p_out_3)
+ggsave('4.jpg', scale=0.75)
 ### END OF QUESTION 3
 ```
 

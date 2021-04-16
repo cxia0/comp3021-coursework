@@ -14,16 +14,23 @@
 \usepackage{graphicx}
 \graphicspath{{images/}}
 
-% \usepackage[at]{easylist}% easy lists with @ starting each item
-% \ListProperties(Margin1=0.5cm, Margin2=1cm, Space*=0.25cm)
 \usepackage{titlesec}
 \titleformat{\section}
-  {\normalfont\large\bfseries\center}{\thesection.}{0.3em}{}
+  {\normalfont\Large\bfseries\center}{\thesection.}{0.3em}{}
 \titleformat{\subsection}
-  {\normalfont\normalsize\bfseries}{\thesubsection.}{0.3em}{}
+  {\normalfont\large\bfseries}{\thesubsection.}{0.3em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\itshape}{\thesubsubsection.}{0.3em}{}
 
 \usepackage[sorting=none]{biblatex}
 \addbibresource{bib.bib}
+
+\usepackage{caption}
+\captionsetup[figure]{
+  font = it
+}
+
+\newcommand{\code}[1]{\mbox{\texttt{#1}}}
 
 \begin{document}
 
@@ -32,80 +39,6 @@
 \date{}
 \maketitle
 
-\section{Introduction}
-Wine has been produced for thousands of years, with the earliest evidence of its production dating back to ancient Georgia \cite{McGovernJalabadze2017}; its importance to human culture is unquestionable, and the intricacies behind its production very vast. As well-summarized by Charles Spence, wine `is a complex, culture-laden, multisensory stimulus' \cite{Spence2020}.
-
-In an effort to better understand the current state of wine culture, and what  factors affect the enjoyability of wine, a dataset containing reviews from \emph{Wine Enthusiast} magazine will be explored. It is important to note that \emph{Wine Enthusiast} only publishes reviews for products that are rated 80 points and above, which on their scale, means wines that are \emph{acceptable}---those that can `be employed in casual, less-critical circumstances' \cite{WineMag}. Thus, this study will aim to understand the properties of good wine.
-
-\section{Exploration}
-The dataset contains wine reviews from 2017 to 2020, and each row contains the following attributes:
-\begin{itemize}
-    \setlength\itemsep{0.1em}
-    \item Name of the wine
-    \item Type of wine
-    \item Price of the wine
-    \item Year in which the grapes were picked
-    \item Vineyard where the grapes were grown
-    \item Name of winery that produced the wine
-    \item Location of wine production, including: country, province, region, and sub-region
-    \item Points given by the taster
-    \item Review written by the taster
-    \item Taster's name, Twitter handle, and photo URL
-\end{itemize}
-
-\subsection{Initial Research Questions}
-Upon initial analysis of the attributes, the following research questions were postulated:
-\begin{enumerate}
-    \setlength\itemsep{0.1em}
-    \item Which country's wines have been reviewed the most?
-    \item Which country has the highest rated wines?
-    \item Is price correlated with taste? Is pricier wine better than cheaper wine?
-    \item What is the best variety of wine?
-    \item Which tasters are the harshest and the kindest?
-\end{enumerate}
-
-
-\section{Visualizations}
-Each question was answered through an iterative process that involved trying out different types plots and visual mappings, and refinement, all with the goal of producing expressive and effective visualizations. The rationale and choices made for each visualization will be explained in detail.
-
-\subsection{Which country's wines have been reviewed the most?}
-Initially, to answer this question, a bar chart was plotted due to its ubiquity. However, the Cleveland dot plot was instead used for the final visualization. This plot was chosen over the more common bar chart to follow Tufte's principles on the so called \emph{data-ink ratio}. As stated by Tufte, ``[a] large share of ink on a graphic should present data-information, the ink changing as the data change.'' This means that the data-ink ratio---expressed as the formula: 
-$$
-\textrm{Data-ink ratio} = \frac{\textrm{Data-ink}}{\textrm{Total ink used}}
-$$
-
-
-
-\noindent ---should usually be high. Though this rule should not be followed strictly in all cases, it may definitely be applied to the bar chart because the area of the bars are redundant data-ink---only the point where the bar ends is required to express the data \cite{Tufte}.  
-
-
-\subsection{Which country's wines have the best reviews?}
-
-
-
-\subsection{Is price correlated with points?}
-\emph{Wine Enthusiast} magazine carries out a strict blind-tasting process that eliminates many possibilities for bias and ensures that the wines are scored only according to the characteristics of the liquids themselves \cite{WineMag}. It is especially important for the tasters to be unaware of the pricing because it has been shown that pricing influences how much humans like wine \cite{SchmidtSkvortsova2017}. In theory however, more expensive wine should indeed mean better quality, and thus, a more enjoyable and nicer taste. For the aforementioned reason, I decided to explore whether this is true in practice using a Ridgeline plot. 
-
-The $x$-axis (which represents price) was logarithmically scaled because otherwise, the very wide range of prices would have lead to a very `zoomed out' plot. The median of each distribution was also added as a line to give a better idea of the trend.
-
-This figure follows the Gestalt principles of figure-ground, continuity, and closure to allow the viewer to easily interpret this visualization. The gradient fill and the black line of each distribution are contrasted with the white background so that the viewer can easily recognize the distributions. The principles of continuity and closure allow the viewer to distinguish between the overlapping distributions.
-
-\subsection{Which tasters are the harshest and the kindest?}
-
-
-
-\section{Further Exploration}
-
-Upon completion of the visualizations meant to answer the initial research questions, further exploratory research questions were developed:
-
-\begin{enumerate}
-  \item Which wines have the best value for price? Points / Price
-  \item Has global warming affected the quality of wine over the years?
-\end{enumerate}
-
-
-% \printbibliography
+\input{body}
 
 \end{document}
-
-
