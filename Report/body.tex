@@ -52,7 +52,7 @@ $$
 \textrm{Data-ink ratio} = \frac{\textrm{Data-ink}}{\textrm{Total ink used}}
 $$
 
-\noindent ---is often a good rule of thumb to follow in order to produce good visualizations. Though this rule should not be strictly adhered to in all cases, it may definitely be applied to the bar chart since the area of the bars are redundant data-ink---only the position where the bar ends is required to express the data \cite{Tufte}. Another reason for choosing the dot plot was because according to Mackinlay's effectiveness ranking, position is the most effective for encoding quantitative data. Meanwhile, hue was chosen to encode the continents because according to the ranking, it is the second most effective for nominal data.
+\noindent ---is often a good rule of thumb to follow in order to produce good visualizations. Though this rule should not be strictly adhered to in all cases, it may definitely be applied to the bar chart since the area of the bars are redundant data-ink---only the position where the bar ends is required to express the data \cite{Tufte}. Another reason for choosing the dot plot was because according to Mackinlay's effectiveness ranking, position is the most effective for encoding quantitative data \cite{Mackinlay}. Meanwhile, hue was chosen to encode the continents because according to the ranking, it is the second most effective for nominal data.
 
 \begin{figure}[h]
   \includegraphics[width=0.95\linewidth]{1.jpg}  
@@ -74,7 +74,7 @@ Initially, this question aimed to explore, out of all countries, which ones had 
   \caption{Countries by mean score of wines}
 \end{figure}
 
-Similarly to the visualization for RQ1, position was used to encode the means while hue was used to encode the continents. Length is used to encode the standard deviation of each mean because it is the second most effective for encoding quantitative values according to Mackinlay. Additionally, the opacity of the bars was lowered to put more emphasis on the means; this was accomplished by layering a Cleveland dot plot on top of the point range plot and lowering the opacity of the latter because in \code{ggplot2}, it is not possible to lower only the opacity of the bars in a point range plot.
+Similarly to the visualization for RQ1, position was used to encode the means while hue was used to encode the continents. Length is used to encode the standard deviation of each mean because it is the second most effective for encoding quantitative values according to Mackinlay \cite{Mackinlay}. Additionally, the opacity of the bars was lowered to put more emphasis on the means; this was accomplished by layering a Cleveland dot plot on top of the point range plot and lowering the opacity of the latter because in \code{ggplot2}, it is not possible to lower only the opacity of the bars in a point range plot.
 
 As shown by figure 2, Austria, Germany, and France had the highest mean scores while the US was only in fourth place. This however, is most likely not representative of how good each country's wines are because compared to the US, wines from other countries have significantly less reviews.
 
@@ -124,14 +124,14 @@ Upon completion of the visualizations meant to answer the initial research quest
 
 To answer this question, multiple visualizations were made. One to compare how good the value of the wines produced by each country were, a second one to visualize the 10 wines with the best value, and third one to visualize the wines with scores above 90 with the best value.
 
-Processing of the data involved dropping rows without a price, and creating a column for each wine's PPR by dividing their points by their price. Thus, the higher the PPR, the better the value.
-
-A visualization of the distribution of each country's wine's PPR was first visualized using kernel density plots, which were faceted for more clarity. The facets are displayed in ascending order of each country's mean PPR as opposed to the default alphabetical order to better see the differences in distribution; this was accomplished by first grouping the data by country, calculating the mean PPR of each country, sorting it in ascending order, and extracting this ordered list of countries as a vector to use to override \code{facet\_wrap()}'s alphabetical ordering. Additionally, only the 10 most reviewed countries were considered because of reasons related to the sample size and the fact that there is a large amount of countries.
-
 \begin{figure}[h]
   \includegraphics[width=0.95\linewidth]{5.1.jpg}
   \caption{PPR distributions of the wines produced by the 10 most reviewed countries} % Change caption
 \end{figure}
+
+Processing of the data involved dropping rows without a price, and creating a column for each wine's PPR by dividing their points by their price. Thus, the higher the PPR, the better the value.
+
+A visualization of the distribution of each country's wine's PPR was first visualized using kernel density plots, which were faceted for more clarity. The facets are displayed in ascending order of each country's mean PPR as opposed to the default alphabetical order to better see the differences in distribution; this was accomplished by first grouping the data by country, calculating the mean PPR of each country, sorting it in ascending order, and extracting this ordered list of countries as a vector to use to override \code{facet\_wrap()}'s alphabetical ordering. Additionally, only the 10 most reviewed countries were considered because of reasons related to the sample size and the fact that there is a large amount of countries.
 
 As shown by figure 5, all countries have a similar underlying distribution, however it is clear that the US and Italy have a larger share of low valued wines compared to the other countries.
 
@@ -147,9 +147,15 @@ The second visualization shows the 10 wines with the highest PPR. For the previo
   \caption{Wines scoring more than 94 by PPR}
 \end{figure}
 
-\subsubsection{Does does wine consumption increase with wine production?}
+\subsection{Does does wine consumption increase with wine production?}
 
-Upon discovery of the largest wine producers 
+The final question aims to explore whether countries that produce wine consume more of it compared to countries that produce less. The data required to answer this question isn't present in the original datasets so the wine consumption and production data in 2016 was gathered from the \emph{International Organisation of Vine and Wine} \cite{OIV}. While the values for consumption were already presented as liters per capita, the values for production were in 1000 hectoliters. To standardize the value to liters produced per capita, population data was obtained from \emph{The World Bank} database \cite{WorldBank}.
+
+To produce the required data, the tables for consumption, production, and population were joined by country. A new column for the wine production in liters per capita was created by multiplying the original production values by 1000 and 100 (1 hectoliter = 100 liters), and diving the previous result by the population.
+
+The scatter plot was used because they are particularly effective for observing relationships between two quantitative variables, which is supported by the fact that position is the most effective at encoding quantitative values \cite{Mackinlay}. Color was chosen to encode the continents to better see 
+
+
 
 
     

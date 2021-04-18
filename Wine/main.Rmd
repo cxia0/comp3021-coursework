@@ -22,6 +22,7 @@ knitr::opts_chunk$set(
 	warning = TRUE,
 	include = FALSE
 )
+library(scales) # Used for pretty
 library(dplyr)
 library(tidyverse)
 library(ggplot2)
@@ -109,11 +110,11 @@ p2 <- ggplot(df_q2, aes(x = points_mean,
 p2 + geom_pointrange(aes(xmin = points_mean - points_sd,
                         xmax = points_mean + points_sd),
                     alpha=0.30,
-                    size = 1.75,
+                    size = 1.50,
                     fatten = 0.01,
                     show.legend = FALSE) +
   geom_point(size = POINT_SIZE) +
-  scale_x_continuous(limits = c(83,95), expand = c(0,0.5), breaks = scales::pretty_breaks(n = 8)) +
+  scale_x_continuous(limits = c(83,95), expand = c(0,0.5), breaks = pretty_breaks(n = 8)) +
   labs(x = 'Points', y = NULL, color = 'Continent') + 
   theme(legend.position = "top")
 
@@ -140,7 +141,7 @@ p3 + geom_pointrange(aes(xmin = points_mean - points_sd,
                     fatten = 0.01,
                     show.legend = FALSE) + 
   geom_point() + 
-  scale_x_continuous(limits = c(83,95), expand = c(0,0.5), breaks = scales::pretty_breaks(n = 8)) +
+  scale_x_continuous(limits = c(83,95), expand = c(0,0.5), breaks = pretty_breaks(n = 8)) +
   labs(x = 'Points', y = NULL, color = 'Gender') +  
   theme(legend.position = "top")
 
@@ -229,11 +230,50 @@ p + geom_point() +
 ggsave('figures/5.3.jpg')
   
 ```
+### Question 6 - Does does wine consumption increase with wine production?
 ```{r}
-df_consumption <-  as_tibble(read_csv('data/alcohol_consumption_per_capita.csv')) %>% 
-  select(c('Country Name',  '2000 [YR2000]', '2015 [YR2015]', '2018 [YR2018]')) %>% 
-  rename(
-     country = 'Country Name', '2000' = '2000 [YR2000]', '2015' = '2015 [YR2015]', '2018' = '2018 [YR2018]' 
-  )
+# df_6 <- as_tibble(read_csv('data/alcohol_consumption_per_capita.csv')) %>% 
+#   select(c('Country Name', '2015 [YR2015]', '2018 [YR2018]')) %>% 
+#   rename(country = 'Country Name',
+#          yr_2015 = '2015 [YR2015]',
+#          yr_2018 = '2018 [YR2018]') %>% 
+#   naniar::replace_with_na_all(condition = ~ .x == '..') %>% 
+#   drop_na()
+
+df_consumption <- as_tibble(read_delim('data/consumption.csv', ';')) %>% 
+  select(Continent, Country, Value) %>% 
+  rename(continent = Continent, country = Country, consumption_capita_l = Value)
+df_production <- as_tibble(read_delim('data/production.csv', ';')) %>%
+  select(Country, Value) %>% 
+  rename(country = Country,
+         production_1000_hl = Value)
+df_pop <- as_tibble(read_csv('data/population_data.csv', skip=4)) %>%
+  select('Country Name', '2016') %>% 
+  rename(country = 'Country Name',
+         population = '2016')
+```
+```{r}
+df_6 <- df_production %>%
+  left_join(df_pop, by = 'country') %>% 
+  left_join(df_consumption, by='country') %>% 
+  drop_na() %>% 
+  mutate(production_capita_l = production_1000_hl * 1000 * 100 / population) # Converting from 1000 hectoliters to liters
+```
+
+```{r}
+p <- ggplot(df_6, aes(production_capita_l, consumption_capita_l))
+
+p + geom_smooth(method='gam', colour='tomato', se = FALSE, size=0.8, alpha=0.75) +
+  # geom_abline(intercept = 0,
+  #             slope = 1,
+  #             color = 'black',
+  #             linetype="dashed",
+  #             size=0.5,
+  #             alpha=0.5) +
+  geom_point(aes(color = continent), size = 2, alpha = 0.5) +
+  labs(x='Production per capita (liters)', y = 'Consumption per capita (liters)', color='Continent') +
+  theme(legend.position = "top")
+
+ggsave('figures/6.jpg', height=6, width=9, scale = 0.75)
 ```
 
