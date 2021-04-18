@@ -1,5 +1,7 @@
+% Datasets
 % https://www.kaggle.com/manyregression/updated-wine-enthusiast-review
-% 
+% https://www.kaggle.com/zynicide/wine-reviews
+% https://databank.worldbank.org/reports.aspx?source=2&series=SH.ALC.PCAP.LI#
 \section{Introduction}
 Wine has been produced for thousands of years, with the earliest evidence of its production dating back to ancient Georgia \cite{McGovernJalabadze2017}; its importance to human culture is unquestionable, and the intricacies behind its production very vast. As well-summarized by Charles Spence, this alcoholic beverage `is a complex, culture-laden, multisensory stimulus' \cite{Spence2020}.
 
@@ -80,14 +82,16 @@ As shown by figure 2, Austria, Germany, and France had the highest mean scores w
 \subsection{Which tasters are the harshest and the kindest?}
 The final question aims to explore the scoring of each taster. Even though the genders of the tasters were not part of the original dataset, they were collected and visualized in the plot to explore whether there is a noticeable scoring difference between the two genders.
 
-Pre-processing of the data involved grouping the data by each taster and then calculating the mean and standard deviation of each taster's scoring. The rows without taster names were dropped. Finally, the previous result was left joined with a table containing the gender of each taster by the taster name. It is important to note that in the review dataset, one of the taster's name---Anne Krebiehl MW---has a no break space character (U+00A0) between `Krebiehl' and `MW', thus, the special character was replaced with the ordinary space character for the left join to perform correctly.
+Pre-processing of the data involved grouping the data by each taster and then calculating the mean and standard deviation of each taster's scoring. The rows without taster names were dropped. The the previous result was then left joined (by taster name) with a table containing the gender of each taster. It is important to note that in the review dataset, one of the taster's name---Anne Krebiehl MW---has a no break space character (U+00A0) between `Krebiehl' and `MW', thus, the special character was replaced with the ordinary space character for the left join to perform correctly.
 
-The rationale for the selection of visual encodings was the same as the one for the previous visualization.
+The rationale for the selection of visual encodings was the same as the one for the previous visualization. Like in the previous visualizations, the nominal variable (taster names) was encoded to the $y$-axis for clarity, because if the $x$-axis was used, it would be harder to read the variable names 
 
 \begin{figure}[h]
   \includegraphics[width=0.95\linewidth]{3.jpg} 
-  \caption{Mean and standard deviation of scoring by taster} % Change caption
+  \caption{Mean and standard deviation of each taster's scoring} % Change caption
 \end{figure}
+
+As shown by figure 3, there is a clear difference in the scores given by the tasters. This however, doesn't necessarily indicate whether some tasters are nicer or harsher; it could simply be a case of certain tasters tasting inherently better wine and others tasting worse wine.
 
 % 444444444
 \subsection{Are pricier wines better?}
@@ -96,7 +100,7 @@ The rationale for the selection of visual encodings was the same as the one for 
 % Initially, scatter plots were tested
 
 \begin{figure}[h]
-  \includegraphics[width=0.95\linewidth]{4.jpg} 
+  \includegraphics[width=0.95\linewidth]{4.jpg}
   \caption{Distribution of pricing for each points} % Change caption
 \end{figure}
 
@@ -107,15 +111,46 @@ The $x$-axis (which represents price) was logarithmically scaled because otherwi
 This figure follows the Gestalt principles of figure-ground, continuity, and closure to allow the viewer to easily interpret this visualization. The gradient fill and the black contour line of each distribution are contrasted with the white background so that the viewer can easily recognize the distributions. The principles of continuity and closure allow the viewer to distinguish between the overlapping distributions.
 
 
-
 \section{Further Exploration}
 
 Upon completion of the visualizations meant to answer the initial research questions, further exploratory research questions were developed:
 
 \begin{enumerate}
-  \item Which wines have the best value for price? Points / Price
+  \item Which wines have the best value in terms of the points to score ratio? 
   \item Has global warming affected the quality of wine over the years?
 \end{enumerate}
 
+\subsection{Which wines have the best value in terms of the price to points ratio (PPR)?}
 
+To answer this question, multiple visualizations were made. One to compare how good the value of the wines produced by each country were, a second one to visualize the 10 wines with the best value, and third one to visualize the wines with scores above 90 with the best value.
+
+Processing of the data involved dropping rows without a price, and creating a column for each wine's PPR by dividing their points by their price. Thus, the higher the PPR, the better the value.
+
+A visualization of the distribution of each country's wine's PPR was first visualized using kernel density plots, which were faceted for more clarity. The facets are displayed in ascending order of each country's mean PPR as opposed to the default alphabetical order to better see the differences in distribution; this was accomplished by first grouping the data by country, calculating the mean PPR of each country, sorting it in ascending order, and extracting this ordered list of countries as a vector to use to override \code{facet\_wrap()}'s alphabetical ordering. Additionally, only the 10 most reviewed countries were considered because of reasons related to the sample size and the fact that there is a large amount of countries.
+
+\begin{figure}[h]
+  \includegraphics[width=0.95\linewidth]{5.1.jpg}
+  \caption{PPR distributions of the wines produced by the 10 most reviewed countries} % Change caption
+\end{figure}
+
+As shown by figure 5, all countries have a similar underlying distribution, however it is clear that the US and Italy have a larger share of low valued wines compared to the other countries.
+
+The second visualization shows the 10 wines with the highest PPR. For the previously mentioned reasons, a Cleveland dot plot was used again. As shown by figure 6, there best valued wines are all scored between 86 and 83, which perfectly falls into \emph{Wine Enthusiast's} classification of \emph{good} wine---`[s]uitable for everyday consumption; often good value' \cite{WineMag}---and, interestingly, all of the wines in figure 6 cost 4 dollars. Because there were no wines scored above 94 (\emph{superb} and beyond as classified by \emph{Wine Enthusiast}), another plot was made to see which wines scoring 94 points or had the best value.
+
+\begin{figure}[h]
+  \includegraphics[width=0.95\linewidth]{5.2.jpg}
+  \caption{Wines by PPR}
+\end{figure}
+
+\begin{figure}[h]
+  \includegraphics[width=0.95\linewidth]{5.3.jpg}
+  \caption{Wines scoring more than 94 by PPR}
+\end{figure}
+
+\subsubsection{Does does wine consumption increase with wine production?}
+
+Upon discovery of the largest wine producers 
+
+
+    
 % \printbibliography
