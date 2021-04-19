@@ -39,12 +39,10 @@ df_raw_1 <- as_tibble(read_csv("data/wine_new.csv"))
 df_raw_2 <- as_tibble(read_csv("data/wine.csv"))
 
 df_2 <- select(df_raw_2, -c(X1, description, province, region_1, region_2,
-                            taster_twitter_handle)) %>% 
-  mutate(vintage = str_match(title, "([1|2][0-9]{3})")[,1])
+                            taster_twitter_handle))
 
 df_1 <- select(df_raw_1, -c(description, province, region_1, region_2,
-                            taster_twitter_handle, taster_photo)) %>% 
-  relocate(vintage, .after = last_col())
+                            taster_twitter_handle, taster_photo, vintage))
 
 df <- df_1 %>% add_row(df_2) %>% distinct(title, .keep_all=TRUE) %>% 
   mutate(taster_name = gsub("\u00A0", " ", taster_name, fixed = TRUE)) %>% 
@@ -76,14 +74,17 @@ p_d + geom_bar(aes(x = points))
 
 ### 1 - Which country's wines have been reviewed the most?
 ```{r}
-df_q1 <- df %>% group_by(country, continent) %>%
+df_1 <- df %>%
+  drop_na(country) %>% 
+  group_by(country, continent) %>%
   count(name = 'count') %>%
-  drop_na(country, count) %>%
   ungroup() %>% 
   slice_max(count, n = 10)
 
-p1 <- ggplot(df_q1, aes(x = count, y = reorder(country, count), color = continent))
-p1 + geom_point(size=POINT_SIZE) +
+p <- ggplot(df_1, aes(count, reorder(country, count),
+                      color = continent))
+
+p + geom_point(size=POINT_SIZE) +
   xlim(-500, 80500) + 
   labs(x = 'Count', y = NULL, color = 'Continent') + 
   theme(legend.position = "top")
@@ -94,27 +95,28 @@ ggsave('figures/1.jpg', width = 9, height = 6, scale = 0.75)
 
 ### 2 - From the most reviewed countries, which has the best reviews?
 ```{r}
-df_q2 <- df %>% 
+df_2 <- df %>% 
+  drop_na(country) %>% 
   group_by(country, continent) %>%
   summarize(points_mean = mean(points, na.rm = TRUE),
             points_sd = sd(points, na.rm = TRUE),
             count = n()) %>% 
-  drop_na(country) %>% 
   ungroup() %>%
   slice_max(count, n=10)
 
-p2 <- ggplot(df_q2, aes(x = points_mean,
-                       y = reorder(country, points_mean),
-                       color = continent))
+p <- ggplot(df_2, aes(points_mean, reorder(country, points_mean),
+                      color = continent))
 
-p2 + geom_pointrange(aes(xmin = points_mean - points_sd,
+p + geom_pointrange(aes(xmin = points_mean - points_sd,
                         xmax = points_mean + points_sd),
                     alpha=0.30,
                     size = 1.50,
                     fatten = 0.01,
                     show.legend = FALSE) +
   geom_point(size = POINT_SIZE) +
-  scale_x_continuous(limits = c(83,95), expand = c(0,0.5), breaks = pretty_breaks(n = 8)) +
+  scale_x_continuous(limits = c(83,95),
+                     expand = c(0,0.5),
+                     breaks = pretty_breaks(n = 8)) +
   labs(x = 'Points', y = NULL, color = 'Continent') + 
   theme(legend.position = "top")
 
@@ -125,48 +127,52 @@ ggsave('figures/2.jpg', width = 10, height = 6, scale = 0.75)
 ```{r}
 df_genders <- as_tibble(read_csv('data/taster_genders.csv'))
 
-df_q3 <- df %>% group_by(taster_name) %>%
+df_3 <- df %>%
+  drop_na(taster_name) %>% 
+  group_by(taster_name) %>%
   summarize(points_mean = mean(points, na.rm = TRUE),
             points_sd = sd(points, na.rm = TRUE),
             count = n()) %>%  
-  drop_na(taster_name) %>% 
   left_join(df_genders, by='taster_name')
 
+p <- ggplot(df_3, aes(points_mean, reorder(taster_name, points_mean),
+                      color=gender))
 
-p3 <- ggplot(df_q3, aes(x = points_mean, y = reorder(taster_name, points_mean), color=gender))
-p3 + geom_pointrange(aes(xmin = points_mean - points_sd,
+p + geom_pointrange(aes(xmin = points_mean - points_sd,
                         xmax = points_mean + points_sd),
                     alpha=0.35,
                     size = 1,
                     fatten = 0.01,
                     show.legend = FALSE) + 
   geom_point() + 
-  scale_x_continuous(limits = c(83,95), expand = c(0,0.5), breaks = pretty_breaks(n = 8)) +
+  scale_x_continuous(limits = c(83,95),
+                     expand = c(0,0.5),
+                     breaks = pretty_breaks(n = 8)) +
   labs(x = 'Points', y = NULL, color = 'Gender') +  
   theme(legend.position = "top")
 
-ggsave('3.jpg', scale=0.75)
+ggsave('figures/3.jpg', scale=0.75)
 ```
 
 
 ### 4 - Are pricier wines better?
 ```{r, fig.height=8, fig.width=8}
-df_q4 <- df %>% select(c(price, points))
+df_4 <- df %>% select(c(price, points))
   
-p4 <- ggplot(df_q4, aes(x = price,
-                     y = factor(points),
-                     fill = ..x..))
+p <- ggplot(df_4, aes(price, factor(points),
+                      fill = ..x..))
 
-p4 + geom_density_ridges_gradient(scale = 1.75,
+p + geom_density_ridges_gradient(scale = 1.75,
                                  size = 0.25,
                                  rel_min_height = 0.01,
-                                 quantile_lines=TRUE, quantile_fun=function(x,...)median(x)) +
+                                 quantile_lines=TRUE,
+                                 quantile_fun=function(x,...)median(x)) +
   scale_fill_viridis_c(name = 'Log Price', option = 'D') +
   scale_x_log10(labels = scales::dollar, expand = c(0, 0)) +
   guides(fill=FALSE) + 
   labs(x = 'Price', y = 'Points')
 
-ggsave('4.jpg', scale=0.75)
+ggsave('figures/4.jpg', scale=0.75)
 ### END OF QUESTION 3
 ```
 
@@ -188,7 +194,7 @@ order <- df_q5.1 %>%
   arrange(ppr_mean) %>%
   pull(country)
 
-p <- ggplot(df_n, aes(x=ppr))
+p <- ggplot(df_q5.1, aes(ppr))
 p + geom_density(size=0.3) +
   facet_wrap(~factor(df_q5.1$country, levels = order),
              nrow=2, ncol=5) +
@@ -202,7 +208,9 @@ ggsave('figures/5.1.jpg', height=8, width = 10, scale=0.75)
 df_q5.2 <- df_q5 %>% 
   slice_max(order_by=ppr, n=10)
 
-p <- ggplot(df_q5.2, aes(ppr, reorder(title, ppr), color=country))
+p <- ggplot(df_q5.2, aes(ppr, reorder(title, ppr),
+                         color=country))
+
 p + geom_point() +
   geom_text(aes(label=points, hjust=-1, vjust=0.35),
             size=3.5,
@@ -263,17 +271,18 @@ df_6 <- df_production %>%
 ```{r}
 p <- ggplot(df_6, aes(production_capita_l, consumption_capita_l))
 
-p + geom_smooth(method='gam', colour='tomato', se = FALSE, size=0.8, alpha=0.75) +
+p + geom_line(stat="smooth",method = "gam", colour='tomato',
+              size = 0.8,
+              alpha = 0.80) + 
   # geom_abline(intercept = 0,
   #             slope = 1,
   #             color = 'black',
   #             linetype="dashed",
   #             size=0.5,
   #             alpha=0.5) +
-  geom_point(aes(color = continent), size = 2, alpha = 0.5) +
+  geom_point(aes(color = continent), size = 2, alpha = 0.50) +
   labs(x='Production per capita (liters)', y = 'Consumption per capita (liters)', color='Continent') +
   theme(legend.position = "top")
 
 ggsave('figures/6.jpg', height=6, width=9, scale = 0.75)
 ```
-
