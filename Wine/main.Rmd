@@ -151,7 +151,7 @@ p + geom_pointrange(aes(xmin = points_mean - points_sd,
   labs(x = 'Points', y = NULL, color = 'Gender') +  
   theme(legend.position = "top")
 
-ggsave('figures/3.jpg', scale=0.75)
+ggsave('figures/3.jpg', height=8, scale=0.8)
 ```
 
 
@@ -227,7 +227,9 @@ df_q5.3 <- df_q5 %>%
   slice_max(order_by=ppr, n=10)
 
 
-p <- ggplot(df_q5.3, aes(ppr, reorder(title, ppr), color=country))
+p <- ggplot(df_q5.3, aes(ppr, reorder(title, ppr),
+                         color=country))
+
 p + geom_point() +
   geom_text(aes(label=points, hjust=-1, vjust=0.35),
             size=3.5,
@@ -240,14 +242,6 @@ ggsave('figures/5.3.jpg')
 ```
 ### Question 6 - Does does wine consumption increase with wine production?
 ```{r}
-# df_6 <- as_tibble(read_csv('data/alcohol_consumption_per_capita.csv')) %>% 
-#   select(c('Country Name', '2015 [YR2015]', '2018 [YR2018]')) %>% 
-#   rename(country = 'Country Name',
-#          yr_2015 = '2015 [YR2015]',
-#          yr_2018 = '2018 [YR2018]') %>% 
-#   naniar::replace_with_na_all(condition = ~ .x == '..') %>% 
-#   drop_na()
-
 df_consumption <- as_tibble(read_delim('data/consumption.csv', ';')) %>% 
   select(Continent, Country, Value) %>% 
   rename(continent = Continent, country = Country, consumption_capita_l = Value)
@@ -274,12 +268,6 @@ p <- ggplot(df_6, aes(production_capita_l, consumption_capita_l))
 p + geom_line(stat="smooth",method = "gam", colour='tomato',
               size = 0.8,
               alpha = 0.80) + 
-  # geom_abline(intercept = 0,
-  #             slope = 1,
-  #             color = 'black',
-  #             linetype="dashed",
-  #             size=0.5,
-  #             alpha=0.5) +
   geom_point(aes(color = continent), size = 2, alpha = 0.50) +
   labs(x='Production per capita (liters)', y = 'Consumption per capita (liters)', color='Continent') +
   theme(legend.position = "top")
